@@ -1,0 +1,92 @@
+name: go-ci-deploy
+
+# 这里保留 push 触发，但只在 main 分支推送时执行。
+# 原因：
+# 1. 当前 runner 本身就是部署服务器，执行工作流就意味着会直接覆盖线上程序。
+# 2. 如果对任意分支都自动部署，测试分支/临时分支的提交也会进入服务器，风险很高。
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    # 使用 self-hosted runner，表示 GitHub Actions 实际运行在你自己的服务器上。
+    # 也就是说，下面的构建、拷贝、systemctl 重启，都是直接在这台服务器本机执行。
+    runs-on: self-hosted
+
+    # 统一把部署相关参数放到环境变量，后续如果目录、服务名、二进制名变化，只需要改这里。
+    env:
+      # Go 主程序入口。当前仓库服务入口在 cmd/server/main.go。
+      BUILD_TARGET: ./cmd/server
+      # 编译后的二进制文件名。这里固定输出为 server。
+      BINARY_NAME: reverse-study-server
+      # 正式部署目录。构建完成后会把新文件覆盖到这里。
+      DEPLOY_DIR: /home/lyu/reverse-study-server/server
+      # systemd 服务名。请确保服务器上存在对应服务，例如 /etc/systemd/system/reverse-study-server.service。
+      # 如果你的实际服务名不是 reverse-study-server，需要把这里改成真实名字。
+      SERVICE_NAME: reverse-study-server.service
+
+    steps:
+      # 拉取当前触发工作流的提交代码。
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # 安装 Go 环境。
+      # 这里不再强制要求和 go.mod 中的版本完全一致，只要 runner 上能拿到可用的 Go 即可。
+      # 因为当前需求重点是“服务器能完成构建和部署”，而不是做严格的版本锁定。
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: stable
+          cache: true
+
+      # 输出少量诊断信息，方便后续排查：
+      # 1. 当前执行节点是不是预期服务器
+      # 2. Go 版本是否正确
+      # 3. 当前仓库路径是否正常
+      - name: Debug Go env
+        run: |
+          echo "USER=$USER"
+          echo "HOME=$HOME"
+          go env
+      - name: Show runner environment
+        run: |
+          echo "Running on self-hosted runner"
+          hostname
+          pwd
+          go version
+
+      # 先执行一次完整编译检查，确保整个项目没有明显编译错误。
+      # 这样可以尽早失败，避免出现“主程序编过了，但其他包已经损坏”的情况。
+      - name: Verify project can build
+        run: go build ./...
+
+      # 单独编译部署用主程序，并输出到临时产物目录。
+      # 这样做的目的：
+      # 1. 明确线上真正发布的是哪个可执行文件
+      # 2. 避免直接在部署目录里编译，减少半成品覆盖线上程序的风险
+      - name: Build deployable binary
+        run: |
+          mkdir -p ./dist
+          go build -o "./dist/${BINARY_NAME}" "${BUILD_TARGET}"
+
+      # 部署到服务器固定目录，并重启服务。
+      # 注意：服务原本可能正处于运行状态，此时不建议直接对正在被执行的目标文件做覆盖写入。
+      # 更稳妥的做法是：
+      # 1. 先把新二进制写成同目录下的临时文件
+      # 2. 再用 mv 原子替换正式文件
+      # 3. 最后重启服务，让新版本生效
+      #
+      # 部署流程说明：
+      # 1. 创建部署目录（首次部署时防止目录不存在）
+      # 2. 先生成一个临时二进制文件，并设置可执行权限
+      # 3. 用 mv 原子替换旧文件，避免直接改写运行中的可执行文件
+      # 4. 重启 systemd 服务，让新版本生效
+      # 5. 输出服务状态，方便在 Actions 日志里快速确认重启结果
+      - name: Deploy
+        run: |
+          install -m 755 "./dist/${BINARY_NAME}" "${DEPLOY_DIR}/${BINARY_NAME}.new"
+          mv -f "${DEPLOY_DIR}/${BINARY_NAME}.new" "${DEPLOY_DIR}/${BINARY_NAME}"
+          sudo systemctl restart "${SERVICE_NAME}"
+          sudo systemctl status "${SERVICE_NAME}" --no-pager
