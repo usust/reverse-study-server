@@ -12,10 +12,10 @@ import (
 type UpdateProgramInput struct {
 	Title           string
 	Description     string
-	Published       bool
+	Published       int
 	Score           int
-	ProgramType     string
-	Difficulty      string
+	ProgramType     int
+	Difficulty      int
 	Tags            []string
 	BaseDir         string
 	SourceFileName  string
@@ -35,8 +35,8 @@ func UpdateProgramByID(ctx context.Context, id uint64, input UpdateProgramInput)
 		Description:     strings.TrimSpace(input.Description),
 		Published:       input.Published,
 		Score:           input.Score,
-		ProgramType:     strings.TrimSpace(input.ProgramType),
-		Difficulty:      strings.TrimSpace(input.Difficulty),
+		ProgramType:     input.ProgramType,
+		Difficulty:      input.Difficulty,
 		Tags:            normalizeTags(input.Tags),
 		BaseDir:         strings.TrimSpace(input.BaseDir),
 		SourceFileName:  strings.TrimSpace(input.SourceFileName),
@@ -57,11 +57,11 @@ func PublishProgramByID(ctx context.Context, id uint64) (dbmodel.ReverseProgram,
 		return dbmodel.ReverseProgram{}, err
 	}
 
-	if item.Published {
+	if item.Published == 1 {
 		return item, nil
 	}
 
-	item.Published = true
+	item.Published = 1
 	return reverseprogramrepo.UpdateByID(ctx, bootstrap.GormDB, id, item)
 }
 

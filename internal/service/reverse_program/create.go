@@ -43,33 +43,12 @@ func GenerateNewReverseProgram(ctx context.Context,
 	if err = rp.Create(ctx, bootstrap.GormDB, &programInfo); err != nil {
 		return err
 	}
-
-	/*
-		// ID 是程序记录主键，使用数据库自增数字。
-		ID uint64 `gorm:"primaryKey;autoIncrement" json:"id"`
-
-		// Score 是题目分值。
-		Score int `gorm:"not null;default:100" json:"score"`
-		// Difficulty 是题目难度（如 easy/medium/hard）。
-		Difficulty string `gorm:"size:32;not null;default:medium" json:"difficulty"`
-
-		// CompletedCount 是完成数量。
-		CompletedCount int `gorm:"not null;default:0" json:"completedCount"`
-
-		// BaseDir 是下载路径或保存路径标识。
-		BaseDir string `gorm:"size:512;not null" json:"baseDir"`
-		// SourceFileName 是源码文件名，默认 main.c。
-		SourceFileName string `gorm:"size:128;not null;default:main.c" json:"sourceFileName"`
-		// ProgramFileName 编译后文件名
-		ProgramFileName string `gorm:"size:128;not null;default:main.c" json:"programFileName"`
-		// ProgramFileMD5 是程序源码文件的 MD5。
-		ProgramFileMD5 string `gorm:"size:64;not null;index" json:"programFileMd5"`
-	*/
-
-	if err = os.MkdirAll(programInfo.BaseDir, 0o755); err != nil {
+	
+	programDir := filepath.Join(programInfo.BaseDir, "programs")
+	if err = os.MkdirAll(programDir, 0o755); err != nil {
 		return err
 	}
-	rootDir := filepath.Join(programInfo.BaseDir, strconv.FormatUint(programInfo.ID, 10))
+	rootDir := filepath.Join(programDir, strconv.FormatUint(programInfo.ID, 10))
 	if err = os.MkdirAll(rootDir, 0o755); err != nil {
 		return err
 	}
@@ -93,7 +72,7 @@ func GenerateNewReverseProgram(ctx context.Context,
 	metaJSON, err := json.MarshalIndent(artifact.Meta, "", "  ")
 	if err = os.WriteFile(
 		filepath.Join(rootDir, programInfo.MetaFileName), // 保存路径
-		metaJSON, // meta文件
+		metaJSON,                                         // meta文件
 		0o644); err != nil {
 		return err
 	}

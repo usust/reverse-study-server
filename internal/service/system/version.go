@@ -1,6 +1,6 @@
 package system
 
-const currentVersion = "v0.1"
+const currentVersion = "1.0.0"
 
 // VersionInfo 是版本接口的响应结构。
 //
@@ -12,7 +12,7 @@ type VersionInfo struct {
 
 // GetVersionInfo 返回当前服务的版本信息。
 //
-// 目前版本号先固定为 v0.1，便于先完成接口联调。
+// 目前版本号先固定为 1.0.0，便于先完成接口联调。
 // 后续如果改为从配置、构建参数或发布流水线注入，优先修改这里。
 func GetVersionInfo() VersionInfo {
 	return VersionInfo{

@@ -21,7 +21,7 @@ type CreateProgramInput struct {
 	Prompt     string
 	CCode      string
 	Score      int
-	Difficulty string
+	Difficulty int
 }
 
 // CreateProgram 保存一条逆向程序记录。
@@ -35,9 +35,9 @@ func CreateProgram(ctx context.Context, input CreateProgramInput) (dbmodel.Rever
 	if score <= 0 {
 		score = 100
 	}
-	difficulty := strings.TrimSpace(input.Difficulty)
-	if difficulty == "" {
-		difficulty = "medium"
+	difficulty := input.Difficulty
+	if difficulty < 0 {
+		difficulty = 0
 	}
 
 	sourceName := "main.c"
@@ -70,11 +70,11 @@ func CreateProgram(ctx context.Context, input CreateProgramInput) (dbmodel.Rever
 	item := dbmodel.ReverseProgram{
 		Title:           "未命名题目",
 		Description:     "",
-		Published:       false,
+		Published:       0,
 		SourceFileName:  sourceName,
 		ProgramFileName: sourceName,
 		Score:           score,
-		ProgramType:     "",
+		ProgramType:     0,
 		Difficulty:      difficulty,
 		Tags:            nil,
 		BaseDir:         sourceDir,

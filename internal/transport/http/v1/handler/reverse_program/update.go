@@ -12,10 +12,10 @@ import (
 type updateProgramRequest struct {
 	Title           string   `json:"title"`
 	Description     string   `json:"description"`
-	Published       bool     `json:"published"`
+	Published       int      `json:"published"`
 	Score           int      `json:"score"`
-	ProgramType     string   `json:"programType"`
-	Difficulty      string   `json:"difficulty"`
+	ProgramType     int      `json:"programType"`
+	Difficulty      int      `json:"difficulty"`
 	Tags            []string `json:"tags"`
 	BaseDir         string   `json:"baseDir"`
 	SourceFileName  string   `json:"sourceFileName"`
@@ -43,8 +43,8 @@ func UpdateProgram(c *gin.Context) {
 		Description:     strings.TrimSpace(input.Description),
 		Published:       input.Published,
 		Score:           input.Score,
-		ProgramType:     strings.TrimSpace(input.ProgramType),
-		Difficulty:      strings.TrimSpace(input.Difficulty),
+		ProgramType:     input.ProgramType,
+		Difficulty:      input.Difficulty,
 		Tags:            input.Tags,
 		BaseDir:         strings.TrimSpace(input.BaseDir),
 		SourceFileName:  strings.TrimSpace(input.SourceFileName),

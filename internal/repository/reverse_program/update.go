@@ -26,8 +26,8 @@ func UpdateByID(ctx context.Context, db *gorm.DB, id uint64, input dbmodel.Rever
 	existing.SourceFileName = strings.TrimSpace(input.SourceFileName)
 	existing.ProgramFileName = strings.TrimSpace(input.ProgramFileName)
 	existing.Score = input.Score
-	existing.ProgramType = strings.TrimSpace(input.ProgramType)
-	existing.Difficulty = strings.TrimSpace(input.Difficulty)
+	existing.ProgramType = input.ProgramType
+	existing.Difficulty = input.Difficulty
 	existing.Tags = append([]string(nil), input.Tags...)
 	existing.BaseDir = strings.TrimSpace(input.BaseDir)
 	existing.ProgramFileMD5 = strings.TrimSpace(input.ProgramFileMD5)

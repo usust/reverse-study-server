@@ -6,7 +6,6 @@ import (
 	dbmodel "reverse-study-server/internal/model"
 	reverseprogramsvc "reverse-study-server/internal/service/reverse_program"
 	chatapi "reverse-study-server/volcengine/chat"
-	"strconv"
 	"strings"
 
 	"github.com/gin-gonic/gin"
@@ -22,11 +21,11 @@ type createNewProgramRequest struct {
 type createNewProgramInfo struct {
 	Title           string   `json:"title"`
 	Description     string   `json:"description"`
-	Published       bool     `json:"published"`
+	Published       int      `json:"published"`
 	SourceFileName  string   `json:"sourceFileName"`
 	ProgramFileName string   `json:"programFileName"`
 	Score           int      `json:"score"`
-	ProgramType     string   `json:"programType"`
+	ProgramType     int      `json:"programType"`
 	Difficulty      int      `json:"difficulty"`
 	Tags            []string `json:"tags"`
 	BaseDir         string   `json:"baseDir"`
@@ -55,11 +54,12 @@ func NewProgram(c *gin.Context) {
 			SourceFileName:  strings.TrimSpace(input.Program.SourceFileName),
 			ProgramFileName: strings.TrimSpace(input.Program.ProgramFileName),
 			Score:           input.Program.Score,
-			ProgramType:     strings.TrimSpace(input.Program.ProgramType),
-			Difficulty:      strconv.Itoa(input.Program.Difficulty),
+			ProgramType:     input.Program.ProgramType,
+			Difficulty:      input.Program.Difficulty,
 			Tags:            normalizeTags(input.Program.Tags),
 			BaseDir:         strings.TrimSpace(input.Program.BaseDir),
 			CompletedCount:  input.Program.CompletedCount,
+			MetaFileName:    "meta.json",
 		},
 	)
 	if err != nil {

@@ -11,15 +11,15 @@ type ReverseProgram struct {
 	Title string `gorm:"size:255;not null;default:''" json:"title"`
 	// Description 是题目描述。
 	Description string `gorm:"type:text" json:"description"`
-	// Published 表示是否发布。
-	Published bool `gorm:"not null;default:false" json:"published"`
+	// Published 表示发布状态，0=未发布，1=已发布。
+	Published int `gorm:"not null;default:0" json:"published"`
 
 	// Score 是题目分值。
 	Score int `gorm:"not null;default:100" json:"score"`
 	// ProgramType 是题目类型。
-	ProgramType string `gorm:"size:64;not null;default:''" json:"programType"`
-	// Difficulty 是题目难度（如 easy/medium/hard）。
-	Difficulty string `gorm:"size:32;not null;default:medium" json:"difficulty"`
+	ProgramType int `gorm:"not null;default:0" json:"programType"`
+	// Difficulty 是题目难度。
+	Difficulty int `gorm:"not null;default:0" json:"difficulty"`
 	// Tags 是题目标签，支持多个标签。
 	Tags []string `gorm:"serializer:json" json:"tags"`
 

@@ -1,4 +1,4 @@
-package reverse_program
+package program
 
 import (
 	v1handler "reverse-study-server/internal/transport/http/v1/handler/reverse_program"
@@ -14,5 +14,6 @@ func RegisterReverseProgramRouter(r gin.IRouter) {
 		reverseProgramGroup.PUT("/:id", v1handler.UpdateProgram)
 		reverseProgramGroup.PUT("/:id/publish", v1handler.PublishProgram)
 		reverseProgramGroup.DELETE("/:id", v1handler.DeleteProgram)
+		reverseProgramGroup.GET("/download/:id", v1handler.DownloadProgram)
 	}
 }
